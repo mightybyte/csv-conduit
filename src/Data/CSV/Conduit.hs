@@ -23,6 +23,7 @@ module Data.CSV.Conduit
     , CSV (..)
     , CSVSettings (..)
     , defCSVSettings
+    , AlistRow
     , MapRow
     , Row
 
