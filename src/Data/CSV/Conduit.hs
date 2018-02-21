@@ -214,6 +214,38 @@ intoCSVRow p = parse =$= puller
 
 
 -------------------------------------------------------------------------------
+-- | Generic 'AlistRow' instance; any stream type with a 'Row' instance
+-- automatically gets a 'AlistRow' instance.
+instance (CSV s (Row s'), Ord s', IsString s) => CSV s (AlistRow s') where
+  rowToStr s r = rowToStr s . map snd $ r
+  intoCSV set = intoCSVAlist set
+  fromCSV set = fromCSVAlist set
+
+
+-------------------------------------------------------------------------------
+intoCSVAlist :: (Ord a, MonadThrow m, CSV s [a])
+           => CSVSettings -> Conduit s m (AlistRow a)
+intoCSVAlist set = intoCSV set =$= (headers >>= converter)
+  where
+    headers = do
+      mrow <- await
+      case mrow of
+        Nothing -> return []
+        Just [] -> headers
+        Just hs -> return hs
+    converter hs = awaitForever $ yield . toAlistCSV hs
+    toAlistCSV !hs !fs = zip hs fs
+
+
+-------------------------------------------------------------------------------
+fromCSVAlist :: (Monad m, IsString s, CSV s [a])
+           => CSVSettings -> Conduit [(k, a)] m s
+fromCSVAlist set = awaitForever push
+  where
+    push r = mapM_ yield [rowToStr set (map snd r), "\n"]
+
+
+-------------------------------------------------------------------------------
 -- | Generic 'MapRow' instance; any stream type with a 'Row' instance
 -- automatically gets a 'MapRow' instance.
 instance (CSV s (Row s'), Ord s', IsString s) => CSV s (MapRow s') where

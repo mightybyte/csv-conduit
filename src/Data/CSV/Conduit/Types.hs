@@ -51,3 +51,9 @@ type Row a = [a]
 -- are keys and row's individual cell values are the values of the
 -- 'Map'.
 type MapRow a = M.Map a a
+
+-------------------------------------------------------------------------------
+-- | An 'AlistRow' is a list of pairs where column names are the first element
+-- and row's individual cell values are the second element.  This is sometimes
+-- more desirable than 'MapRow' because it preserves column order.
+type AlistRow a = [(a,a)]
